@@ -45,6 +45,7 @@ PLAYER_SIDE = "bottom"
 FLASH_FRAMES_GOOD = 45   # 好球文字停留帧数
 FLASH_FRAMES_NET = 30    # 下网文字停留帧数
 TRAIL_LENGTH = 15        # 球轨迹长度
+EXPORT_VIDEO = "demo/output.avi"       # 导出路径 — None=不导出
 
 # ═══════════════════════════════════════════
 #  Kalman 追踪
@@ -283,6 +284,13 @@ def main():
     cv2.namedWindow("Tennis Net Call | q=quit SPACE=pause", cv2.WINDOW_NORMAL)
     cv2.resizeWindow("Tennis Net Call | q=quit SPACE=pause", DISPLAY_WIDTH, DISPLAY_HEIGHT)
     
+    # 导出视频
+    writer = None
+    if EXPORT_VIDEO:
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        writer = cv2.VideoWriter(EXPORT_VIDEO, fourcc, fps / (SKIP_FRAMES + 1), (DISPLAY_WIDTH, DISPLAY_HEIGHT))
+        print(f"[Export] Saving to {EXPORT_VIDEO}")
+    
     print("[System] Ball crosses net from player side -> GOOD SHOT!")
     print("[System] Press q or ESC to quit\n")
 
@@ -302,6 +310,8 @@ def main():
                     cv2.line(display, (0, net_line_y_disp), (DISPLAY_WIDTH, net_line_y_disp), (0, 180, 240), 1)
                     draw_frame(display, net_line_y_disp, tracker, flash_type, flash_remaining, good_shots, net_shots, frame_idx, total_frames, paused)
                     cv2.imshow("Tennis Net Call | q=quit SPACE=pause", display)
+                    if writer:
+                        writer.write(display)
                     key = cv2.waitKey(1) & 0xFF
                     if key == ord('q') or key == 27:
                         raise KeyboardInterrupt
@@ -335,6 +345,8 @@ def main():
                         # 先绘帧 → TTS → 继续显示
                         display_with_osd = draw_frame(display.copy(), net_line_y_disp, tracker, flash_type, flash_remaining, good_shots, net_shots, frame_idx, total_frames, paused)
                         cv2.imshow("Tennis Net Call | q=quit SPACE=pause", display_with_osd)
+                        if writer:
+                            writer.write(display_with_osd)
                         cv2.waitKey(1)
                         speak_windows("好球")
 
@@ -358,6 +370,8 @@ def main():
                 pass
             
             cv2.imshow("Tennis Net Call | q=quit SPACE=pause", display)
+            if writer:
+                writer.write(display)
 
             key = cv2.waitKey(1) & 0xFF
             if key == ord('q') or key == 27:
@@ -370,6 +384,9 @@ def main():
 
     finally:
         cap.release()
+        if writer:
+            writer.release()
+            print(f"[Export] Saved to {EXPORT_VIDEO}")
         cv2.destroyAllWindows()
         elapsed = time.time() - start_time
         print(f"\n{'='*55}")
