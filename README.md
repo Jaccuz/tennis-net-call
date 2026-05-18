@@ -35,8 +35,50 @@ tennis-net-call/
 ├── shot_judge.py        # 好球判定：过网检测
 ├── audio_player.py      # 语音播报：预录音频即时播放
 ├── audio/               # 预录音频文件 (.wav)
+├── deploy/
+│   ├── install.sh               # 一键部署脚本
+│   ├── run.sh                   # systemd 启动包装
+│   └── tennis-net-call.service  # systemd 单元文件
 ├── requirements.txt
 └── README.md
+```
+
+## 部署到 Ubuntu 工控板
+
+### 一键部署
+
+```bash
+git clone <repo> /tmp/tennis-net-call
+cd /tmp/tennis-net-call/deploy
+chmod +x install.sh
+sudo ./install.sh
+```
+
+脚本完成后服务自动启动并开机自启。
+
+### 服务管理
+
+```bash
+sudo systemctl start   tennis-net-call   # 启动
+sudo systemctl stop    tennis-net-call   # 停止
+sudo systemctl restart tennis-net-call   # 重启
+sudo systemctl status  tennis-net-call   # 状态
+sudo journalctl -u tennis-net-call -f    # 实时日志
+```
+
+### 配置网线位置
+
+编辑 `/etc/systemd/system/tennis-net-call.service`：
+
+```ini
+Environment=TENNIS_CAMERA=0       # 摄像头设备号
+Environment=TENNIS_NET_LINE=0     # 0 = 自动标定，或手动填入 Y 坐标（如 180）
+```
+
+修改后：
+
+```bash
+sudo systemctl daemon-reload && sudo systemctl restart tennis-net-call
 ```
 
 ## 工作原理

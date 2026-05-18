@@ -1,0 +1,28 @@
+[Unit]
+Description=Trace Up — Tennis Net Call (Real-time net detection)
+After=network.target sound.target
+Wants=sound.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/tennis-net-call
+
+# ── 摄像头和网线配置 ──────────────────────────────────────────────
+# TENNIS_CAMERA  : 摄像头设备号（0 = /dev/video0）
+# TENNIS_NET_LINE: 网线 Y 坐标（像素）；0 = 开机自动标定（需摄像头朝向球网）
+Environment=TENNIS_CAMERA=0
+Environment=TENNIS_NET_LINE=0
+
+# ── 音频驱动（headless 板子用 alsa）────────────────────────────────
+Environment=SDL_AUDIODRIVER=alsa
+Environment=PYTHONUNBUFFERED=1
+
+ExecStart=/opt/tennis-net-call/deploy/run.sh
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
